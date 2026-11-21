@@ -6,8 +6,11 @@ import argparse
 import json
 import sys
 import time
+import uuid
 from collections import Counter
 from collections.abc import Sequence
+
+from langfuse import Langfuse
 
 from .config import load_settings, make_client, make_offline_client
 from .dataset import ICD_RELEASE, load_cases, load_code_descriptions, used_codes
@@ -39,11 +42,20 @@ def _cmd_validate(_: argparse.Namespace) -> int:
     return 0
 
 
+def _authenticate(langfuse: Langfuse, host: str) -> bool:
+    try:
+        if langfuse.auth_check():
+            return True
+        print(f"Langfuse rejected the keys at {host}.")
+    except Exception as exc:  # noqa: BLE001 - any transport failure means we cannot reach it
+        print(f"Cannot reach Langfuse at {host}: {exc.__class__.__name__}. Is it running?")
+    return False
+
+
 def _cmd_prompts_sync(_: argparse.Namespace) -> int:
     settings = load_settings()
     langfuse = make_client(settings)
-    if not langfuse.auth_check():
-        print(f"Langfuse rejected the keys at {settings.host}.")
+    if not _authenticate(langfuse, settings.host):
         return 1
     result = sync_prompts(langfuse)
     langfuse.flush()
@@ -61,8 +73,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     else:
         settings = load_settings()
         langfuse = make_client(settings)
-        if not langfuse.auth_check():
-            print(f"Langfuse rejected the keys at {settings.host}.")
+        if not _authenticate(langfuse, settings.host):
             return 1
         prompts = LangfusePromptStore(langfuse)
         for spec in SPECS:
@@ -73,7 +84,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
                 return 1
         target = settings.host
 
-    pipeline = IcdPipeline(langfuse, prompts, seed=args.seed, latency_scale=args.latency_scale)
+    run_id = args.run_id or uuid.uuid4().hex[:8]
+    pipeline = IcdPipeline(
+        langfuse, prompts, seed=args.seed, run_id=run_id, latency_scale=args.latency_scale
+    )
     tally: Counter[str] = Counter()
     started = time.time()
     for offset in range(args.traces):
@@ -89,6 +103,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
         tally["injected_timeouts"] += result.timeout_injected
         tally["icd_correct"] += result.correct
         tally["icd_incorrect"] += not result.correct
+        # The SDK exports spans in the background through a bounded queue and drops spans
+        # when the queue is full. Flushing regularly keeps a fast producer from losing data.
+        if args.flush_every and (offset + 1) % args.flush_every == 0:
+            langfuse.flush()
         if (offset + 1) % 100 == 0:
             print(f"  {offset + 1}/{args.traces} traces", file=sys.stderr)
 
@@ -96,6 +114,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     summary = {
         "target": target,
         "seed": args.seed,
+        "run_id": run_id,
         "elapsed_seconds": round(time.time() - started, 1),
         **tally,
     }
@@ -122,13 +141,24 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     run = sub.add_parser("run", help="run the pipeline and write traces")
     run.add_argument("--traces", type=int, default=1000, help="number of traces (default 1000)")
-    run.add_argument("--seed", type=int, default=42, help="seed for ids and variation")
+    run.add_argument("--seed", type=int, default=42, help="seed for users, tokens and timeouts")
+    run.add_argument(
+        "--run-id",
+        default=None,
+        help="id that trace and session ids derive from (default: random, so every run is new)",
+    )
     run.add_argument("--start-index", type=int, default=0, help="index of the first trace")
     run.add_argument(
         "--latency-scale",
         type=float,
-        default=0.0,
-        help="sleep this fraction of the recorded latency per step (0 writes instantly)",
+        default=0.01,
+        help="sleep this fraction of each step's recorded latency (default 0.01; 1 is real time)",
+    )
+    run.add_argument(
+        "--flush-every",
+        type=int,
+        default=25,
+        help="flush to Langfuse every N traces so no spans are dropped (0 disables)",
     )
     run.add_argument("--dry-run", action="store_true", help="run without sending anything")
     run.set_defaults(func=_cmd_run)

@@ -30,7 +30,7 @@ class RecordingStore(LocalPromptStore):
 
 @pytest.fixture(scope="module")
 def pipeline():
-    return IcdPipeline(make_offline_client(), LocalPromptStore(), seed=42)
+    return IcdPipeline(make_offline_client(), LocalPromptStore(), seed=42, run_id="test")
 
 
 def names(result):
@@ -89,7 +89,7 @@ def test_same_index_gives_the_same_trace(pipeline):
 
 def test_every_prompt_variable_is_filled_for_every_case():
     store = RecordingStore()
-    pipeline = IcdPipeline(make_offline_client(), store, seed=1)
+    pipeline = IcdPipeline(make_offline_client(), store, seed=1, run_id="test")
     for i, case in enumerate(load_cases()):
         pipeline.run_case(case, i)
     assert store.compiled and not any("{{" in text for text in store.compiled)

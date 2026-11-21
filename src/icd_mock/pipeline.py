@@ -30,6 +30,10 @@ from .prompts import LangfusePromptStore, LocalPromptStore
 from .vector_db import INDEX_NAME, SIMILARITY_THRESHOLD, MockVectorDB, VectorDBTimeout
 
 TIMEOUT_RATE = 0.03
+# Langfuse orders observations by start time, which has millisecond precision, so every step
+# waits a moment before it starts. Without this, steps of a fast mock run tie and appear shuffled.
+MIN_STEP_GAP_SECONDS = 0.003
+SEARCH_LATENCY_MS = 90
 TOP_K = 5
 CLINICIANS = 12
 
@@ -72,11 +76,13 @@ class IcdPipeline:
         prompts: LangfusePromptStore | LocalPromptStore,
         *,
         seed: int,
+        run_id: str,
         latency_scale: float = 0.0,
     ) -> None:
         self._lf = langfuse
         self._prompts = prompts
         self._seed = seed
+        self._run_id = run_id
         self._llm = MockLLM(seed)
         self._vector_db = MockVectorDB()
         self._descriptions = load_code_descriptions()
@@ -86,8 +92,8 @@ class IcdPipeline:
         rng = random.Random(f"{self._seed}:trace:{index}")
         timeout_injected = rng.random() < TIMEOUT_RATE
         user_id = f"clinician-{rng.randint(1, CLINICIANS):02d}"
-        session_id = f"encounter-{self._seed}-{index // 3}"
-        trace_id = self._lf.create_trace_id(seed=f"icd-mock:{self._seed}:{index}")
+        session_id = f"encounter-{self._run_id}-{index // 3}"
+        trace_id = self._lf.create_trace_id(seed=f"icd-mock:{self._run_id}:{index}")
         key = str(index)
         steps: list[StepRecord] = []
         tags = ["icd-extraction", case.specialty.replace(" ", "-")]
@@ -97,6 +103,7 @@ class IcdPipeline:
             "patient_age": str(case.patient.age),
             "dataset_version": DATASET_VERSION,
             "run_seed": str(self._seed),
+            "run_id": self._run_id,
         }
         note_input = {"case_id": case.id, "note": case.raw_note}
 
@@ -222,6 +229,7 @@ class IcdPipeline:
         recorded_output: str,
         key: str,
     ) -> str:
+        time.sleep(MIN_STEP_GAP_SECONDS)
         handle = self._prompts.get(prompt_name)
         messages = handle.compile(**variables)
         model = handle.config.get("model")
@@ -279,12 +287,14 @@ class IcdPipeline:
         miss: bool = False,
         timeout: bool = False,
     ) -> list[dict[str, Any]] | None:
+        time.sleep(MIN_STEP_GAP_SECONDS)
         with self._lf.start_as_current_observation(
             name="vector-search",
             as_type="retriever",
             input={"query": query, "top_k": TOP_K, "index": INDEX_NAME, "attempt": attempt},
             metadata={"vector_db": "mock-vector-index", "threshold": str(SIMILARITY_THRESHOLD)},
         ) as span:
+            time.sleep(SEARCH_LATENCY_MS / 1000 * self._latency_scale)
             try:
                 hits = self._vector_db.search(case, query, miss=miss, timeout=timeout, top_k=TOP_K)
             except VectorDBTimeout as exc:

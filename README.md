@@ -43,7 +43,7 @@ The model names match Langfuse's built-in model definitions, so Langfuse infers 
   - about 3 percent of traces get an injected vector search timeout (`ERROR`) and a retry.
 - **Scores** on each trace: `icd_correct` (boolean), `validation_passed` (boolean) and `selection_attempts` (numeric).
 - **Metadata and identity**: `case_id`, specialty, a clinician user ID, an encounter session ID, and tags.
-- Trace IDs are derived from the seed, so re-running the same command updates the same traces and does not duplicate them.
+- Trace and session IDs derive from a run ID (`--run-id`, random by default), so every run writes a new set of traces. With the same `--run-id` a run reuses the same trace IDs, but OpenTelemetry assigns span IDs randomly, so re-running it adds duplicate observations to those traces. Use a new run ID instead.
 
 ## Setup
 
@@ -77,12 +77,14 @@ icd-mock run --dry-run               # run the pipeline without sending anything
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `--traces` | 1000 | Number of traces. Case `i % 30` is used for trace `i`. |
-| `--seed` | 42 | Seeds trace IDs, users, token counts and which traces get a timeout. |
+| `--seed` | 42 | Seeds users, token counts and which traces get a timeout. |
+| `--run-id` | random | Trace and session IDs derive from it. A new run ID writes new traces. |
+| `--flush-every` | 25 | Flush to Langfuse every N traces. The SDK drops spans when its export queue is full, so a fast loop must flush. |
 | `--start-index` | 0 | Index of the first trace, to append more traces with the same seed. |
-| `--latency-scale` | 0 | Sleep this fraction of each step's recorded latency. `0` writes as fast as possible. |
+| `--latency-scale` | 0.01 | Sleep this fraction of each step's recorded latency. `1` is real time, `0` writes as fast as possible. |
 | `--dry-run` | off | Use local prompts and send nothing. |
 
-The Langfuse SDK takes timestamps from the clock, so traces are written at the time you run the command.
+The Langfuse SDK takes timestamps from the clock, so traces are written at the time you run the command, and step durations are the recorded latency scaled by `--latency-scale`. Every step also starts a few milliseconds after the previous one, so Langfuse shows the steps in order.
 
 ## How it works
 
