@@ -2,7 +2,7 @@
 
 A mock clinical ICD-10 coding service that writes realistic traces to [Langfuse](https://langfuse.com) **without calling any LLM**.
 
-It behaves like a production extraction pipeline: it fetches six prompts from Langfuse prompt management, runs them over clinical notes, and records every step with its input, output, model, token usage and a link to the prompt version. The model outputs come from a hand-written dataset of 30 cases, so you get a repeatable, production-shaped trace set for testing dashboards, prompt management, filters and evaluation.
+It behaves like a production extraction pipeline: it fetches six prompts and their models from Langfuse, runs them over clinical notes, and records every step with its input, output, model, token usage and a link to the prompt version. The model outputs come from a hand-written dataset of 30 cases, so you get a repeatable, production-shaped trace set for testing dashboards, prompt management, filters and evaluation.
 
 > **All data is synthetic.** The notes are invented for this repository. They contain no real patient data and no names. Do not use this repository with real clinical records.
 
@@ -22,7 +22,7 @@ icd-extraction                      chain
 └─ select-code, validate-code       again when validation rejects the first choice
 ```
 
-| Prompt | Mock model | What it does |
+| Prompt | Suggested model | What it does |
 | --- | --- | --- |
 | `icd-note-cleaning` | `gpt-4o-mini` | Removes the header and identifiers, expands abbreviations |
 | `icd-paragraph-extraction` | `gemini-2.5-flash` | Keeps the paragraphs that matter for coding |
@@ -31,7 +31,21 @@ icd-extraction                      chain
 | `icd-code-selection` | `gpt-4.1` | Chooses the final code from all the context |
 | `icd-code-validation` | `o3-mini` | Checks the chosen code against the note and candidates |
 
-The model names match Langfuse's built-in model definitions, so Langfuse infers cost from the token usage the service reports.
+## Langfuse owns the prompts and the models
+
+The service holds no prompt text. Before a run it fetches the `production` version of each of the six prompts from Langfuse, together with the model attached to that prompt version, and uses exactly those versions for the whole run. Edit a prompt or change its model in Langfuse, and the next run picks it up.
+
+- **Model:** each prompt version needs a model from the Langfuse model registry. The service reads it from the prompt API (`model.provider`, `model.modelId` and the effective parameters) and records it on the generation. The registry feature is in Langfuse versions that return a `model` on prompts. A prompt with no model, or a missing prompt, stops the run with a message that lists what to fix.
+- **Cost:** when the registry model is linked to a model definition, Langfuse infers cost from the token usage the service reports.
+- **Creating the prompts:** create the six prompts as chat prompts with the `production` label and the names above. `icd-mock prompts show` prints the reference text and the variables each prompt uses (for example `{{raw_note}}`), as JSON. Keep those variable names, because the service fills them.
+- **Dry runs and tests** use a built-in copy of the reference prompts, so they need no Langfuse.
+
+## What each trace records about prompts and models
+
+- Every generation is linked to the prompt version it used, so Langfuse shows `prompt: <name> - v<version>` on it and counts the usage on the prompt's page.
+- Every generation also carries `prompt_name`, `prompt_version`, `prompt_label`, `model_provider` and `registry_model_id` in its metadata, and its `model` and model parameters come from the prompt's registry model.
+- The root span's trace metadata has `prompt_versions`, a JSON map of the version of every prompt used in that request.
+- A run prints the table of prompts, versions and models it fetched, and its summary repeats them.
 
 ## What the traces contain
 
@@ -67,7 +81,8 @@ LANGFUSE_SECRET_KEY=sk-lf-...
 
 ```bash
 icd-mock validate-dataset            # check the dataset and its ICD codes
-icd-mock prompts sync                # create or update the six prompts in Langfuse (production label)
+icd-mock prompts check               # fetch the six prompts and their models from Langfuse and list them
+icd-mock prompts show                # print the reference prompts as JSON, to create them in Langfuse
 icd-mock run --traces 1000 --seed 42 # write 1000 traces
 icd-mock run --dry-run               # run the pipeline without sending anything
 ```
@@ -82,13 +97,13 @@ icd-mock run --dry-run               # run the pipeline without sending anything
 | `--flush-every` | 25 | Flush to Langfuse every N traces. The SDK drops spans when its export queue is full, so a fast loop must flush. |
 | `--start-index` | 0 | Index of the first trace, to append more traces with the same seed. |
 | `--latency-scale` | 0.01 | Sleep this fraction of each step's recorded latency. `1` is real time, `0` writes as fast as possible. |
-| `--dry-run` | off | Use local prompts and send nothing. |
+| `--dry-run` | off | Use the built-in reference prompts and send nothing. |
 
 The Langfuse SDK takes timestamps from the clock, so traces are written at the time you run the command, and step durations are the recorded latency scaled by `--latency-scale`. Every step also starts a few milliseconds after the previous one, so Langfuse shows the steps in order.
 
 ## How it works
 
-- `src/icd_mock/pipeline.py` runs the steps and records them with the Langfuse Python SDK v3. Each generation passes the prompt client from `get_prompt`, which is what links the generation to its prompt version.
+- `src/icd_mock/pipeline.py` runs the steps and records them with the Langfuse Python SDK v3. `src/icd_mock/prompts.py` fetches the prompts and their registry models from Langfuse. Each generation passes the prompt client from `get_prompt`, which links the generation to its prompt version.
 - `src/icd_mock/mock_llm.py` returns the recorded text with usage derived from its length. Nothing contacts a model provider.
 - `src/icd_mock/vector_db.py` returns the recorded candidates, with official descriptions.
 - `data/cases/*.json` is the hand-written dataset. `scripts/build_code_subset.py` rebuilds `data/icd10cm_subset.json` from the official code file.
