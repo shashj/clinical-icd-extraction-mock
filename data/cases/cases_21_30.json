@@ -1,0 +1,328 @@
+[
+  {
+    "id": "case-21",
+    "specialty": "sleep medicine",
+    "patient": { "age": 56, "sex": "male" },
+    "paragraphs": [
+      "Visit type: sleep clinic review after overnight study. Bed partner attended.",
+      "56-year-old man with loud snoring, witnessed pauses in breathing and daytime sleepiness for two years. He falls asleep watching television and has nearly dozed while driving. Morning headaches occur most days.",
+      "Past history: hypertension. Medications: losartan 50 mg. Neck circumference 44 cm, BMI 33. Alcohol in the evenings.",
+      "Study result: overnight polysomnography shows an apnea-hypopnea index of 32 events per hour with oxygen desaturations to 82 percent. Epworth sleepiness score 15.",
+      "Assessment: obstructive sleep apnea, moderate to severe. Plan: start CPAP therapy, weight management, avoid evening alcohol, no driving when drowsy."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["obstructive sleep apnea"],
+    "treated": [{ "condition": "obstructive sleep apnea", "treatment": "CPAP therapy" }],
+    "query": "obstructive sleep apnea adult polysomnography",
+    "candidates": [
+      { "code": "G47.33", "score": 0.95 },
+      { "code": "G47.30", "score": 0.87 },
+      { "code": "R06.83", "score": 0.72 },
+      { "code": "G47.10", "score": 0.68 },
+      { "code": "G47.00", "score": 0.62 }
+    ],
+    "expected_code": "G47.33",
+    "selection": {
+      "code": "G47.33",
+      "rationale": "The study confirms obstructive sleep apnea, so the specific code is preferred over unspecified sleep apnea."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Obstructive type is explicitly documented, so G47.33 is correct."
+    }
+  },
+  {
+    "id": "case-22",
+    "specialty": "pediatrics",
+    "patient": { "age": 4, "sex": "female" },
+    "paragraphs": [
+      "Visit type: pediatric same-day visit. Parent present and consented to examination.",
+      "4-year-old girl with right ear pain since last night, fever to 39.0 C and poor sleep. She has had a runny nose for four days. No vomiting, rash or discharge from the ear.",
+      "No previous ear infections. Immunizations up to date. No known allergies. Attends day care.",
+      "Exam: temperature 38.8 C. Right tympanic membrane is red and bulging with purulent fluid behind it and no perforation. Left ear normal. Throat mildly red.",
+      "Assessment: acute otitis media of the right ear, suppurative, with no rupture of the ear drum. Plan: amoxicillin for seven days, ibuprofen for pain, review in 48 hours if fever persists."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["acute suppurative otitis media, right ear"],
+    "treated": [{ "condition": "otitis media", "treatment": "amoxicillin for seven days" }],
+    "query": "acute suppurative otitis media right ear without rupture",
+    "candidates": [
+      { "code": "H66.001", "score": 0.93 },
+      { "code": "H66.90", "score": 0.85 },
+      { "code": "H65.90", "score": 0.76 },
+      { "code": "H92.09", "score": 0.7 },
+      { "code": "H61.20", "score": 0.58 }
+    ],
+    "expected_code": "H66.001",
+    "selection": {
+      "code": "H66.001",
+      "rationale": "The assessment gives suppurative otitis media of the right ear with an intact ear drum, which is a specific code."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Laterality, suppuration and absence of rupture are all documented, matching H66.001."
+    }
+  },
+  {
+    "id": "case-23",
+    "specialty": "hematology",
+    "patient": { "age": 38, "sex": "female" },
+    "paragraphs": [
+      "Visit type: outpatient hematology referral. Records from primary care included.",
+      "38-year-old woman referred for fatigue and pallor over three months. She has mild breathlessness on exertion. No bleeding, black stools or weight loss.",
+      "Past history: none significant. Medications: none. Vegetarian diet. Periods monthly and not heavy.",
+      "Results: hemoglobin 9.8 g/dL, MCV normal, platelets and white cells normal. Ferritin, vitamin B12 and folate results are pending. Exam otherwise unremarkable.",
+      "Assessment: anemia, cause not yet established. Plan: await iron studies and vitamin levels, repeat blood count in two weeks, start treatment according to results."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["anemia"],
+    "treated": [{ "condition": "anemia", "treatment": "investigations pending, treatment to follow results" }],
+    "query": "anemia unspecified cause not established",
+    "candidates": [
+      { "code": "D64.9", "score": 0.9 },
+      { "code": "D50.9", "score": 0.84 },
+      { "code": "D53.9", "score": 0.79 },
+      { "code": "D51.9", "score": 0.73 },
+      { "code": "D63.1", "score": 0.6 }
+    ],
+    "expected_code": "D64.9",
+    "selection": {
+      "code": "D64.9",
+      "rationale": "The assessment states anemia with the cause not yet established, so a deficiency type cannot be assumed."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Results that would define the type are pending. D64.9 is the supported code."
+    }
+  },
+  {
+    "id": "case-24",
+    "specialty": "nephrology",
+    "patient": { "age": 66, "sex": "male" },
+    "paragraphs": [
+      "Visit type: nephrology clinic, six-month review. Latest results printed.",
+      "66-year-old man with longstanding kidney impairment. He feels well with no swelling, nausea, change in urine output or itching.",
+      "Past history: type 2 diabetes, hypertension. Medications: ramipril 10 mg, empagliflozin 10 mg, metformin reduced to 500 mg twice daily.",
+      "Results: eGFR 41 mL/min per 1.73 square meters, stable across the last three tests. Urine albumin to creatinine ratio mildly raised. Potassium normal. Blood pressure 128/76.",
+      "Assessment: chronic kidney disease, stage 3, no substage recorded. Plan: continue ramipril and empagliflozin, avoid anti-inflammatory drugs, repeat bloods in six months."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["chronic kidney disease stage 3"],
+    "treated": [{ "condition": "chronic kidney disease", "treatment": "ramipril and empagliflozin" }],
+    "query": "chronic kidney disease stage 3 unspecified",
+    "candidates": [
+      { "code": "N18.30", "score": 0.91 },
+      { "code": "N18.9", "score": 0.88 },
+      { "code": "N18.31", "score": 0.82 },
+      { "code": "N18.32", "score": 0.8 },
+      { "code": "N18.4", "score": 0.66 }
+    ],
+    "expected_code": "N18.30",
+    "first_selection": {
+      "code": "N18.9",
+      "rationale": "The note describes longstanding kidney impairment, so chronic kidney disease, unspecified is chosen."
+    },
+    "first_validation_reason": "The assessment documents stage 3, so the stage is known. N18.9 discards that information.",
+    "selection": {
+      "code": "N18.30",
+      "rationale": "Stage 3 is documented without a 3a or 3b substage, even though the eGFR value would fall in 3b."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Coders cannot assign a substage from the eGFR alone. N18.30 follows the assessment."
+    }
+  },
+  {
+    "id": "case-25",
+    "specialty": "dermatology",
+    "patient": { "age": 35, "sex": "male" },
+    "paragraphs": [
+      "Visit type: dermatology clinic, new patient. Photographs taken with consent.",
+      "35-year-old man with itchy, scaly red patches on both elbows and the scalp for about a year. Patches thicken and flake and flare in winter. No joint pain or nail changes.",
+      "Medications: emollients only. Family history of skin disease in his father. Moderate alcohol intake.",
+      "Exam: sharply defined scaly red patches on the elbows and scalp, covering about three percent of body surface area. Nails normal, joints not swollen.",
+      "Assessment: psoriasis. Plan: start topical calcipotriol with betamethasone, use emollients, review in eight weeks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["psoriasis"],
+    "treated": [{ "condition": "psoriasis", "treatment": "calcipotriol with betamethasone topical" }],
+    "query": "psoriasis unspecified scaly patches elbows scalp",
+    "candidates": [
+      { "code": "L40.9", "score": 0.9 },
+      { "code": "L40.0", "score": 0.88 },
+      { "code": "L40.50", "score": 0.7 },
+      { "code": "L30.9", "score": 0.66 },
+      { "code": "L21.9", "score": 0.64 }
+    ],
+    "expected_code": "L40.9",
+    "selection": {
+      "code": "L40.9",
+      "rationale": "The assessment states psoriasis without naming a type. There is no joint disease, so the arthropathic code does not apply."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "A coder cannot assign vulgaris from the description alone. L40.9 follows the stated diagnosis."
+    }
+  },
+  {
+    "id": "case-26",
+    "specialty": "orthopedics",
+    "patient": { "age": 67, "sex": "female" },
+    "paragraphs": [
+      "Visit type: orthopedic outpatient clinic. Walking aid noted at reception.",
+      "67-year-old woman with knee pain for several years, worse on stairs and at the end of the day. Morning stiffness lasts about ten minutes. No locking, falls or fever.",
+      "Past history: hypertension. Medications: paracetamol, topical diclofenac. Retired teacher, walks daily.",
+      "Findings: bony enlargement and crepitus at the knee, mild effusion, range of motion 5 to 120 degrees. Weight-bearing X-ray shows joint space narrowing and osteophytes.",
+      "Assessment: osteoarthritis of the knee. Plan: physiotherapy, weight loss advice, intra-articular steroid injection offered, consider surgery if symptoms progress."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["osteoarthritis of the knee"],
+    "treated": [{ "condition": "knee osteoarthritis", "treatment": "physiotherapy and topical diclofenac" }],
+    "query": "osteoarthritis of knee unspecified",
+    "retry_query": "knee osteoarthritis joint space narrowing",
+    "candidates": [
+      { "code": "M17.9", "score": 0.91 },
+      { "code": "M17.11", "score": 0.83 },
+      { "code": "M17.0", "score": 0.78 },
+      { "code": "M25.561", "score": 0.7 },
+      { "code": "M19.90", "score": 0.66 }
+    ],
+    "expected_code": "M17.9",
+    "selection": {
+      "code": "M17.9",
+      "rationale": "Osteoarthritis of the knee is documented without a side or a primary or secondary classification."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The note does not specify laterality or type. M17.9 is the supported code."
+    }
+  },
+  {
+    "id": "case-27",
+    "specialty": "emergency medicine",
+    "patient": { "age": 26, "sex": "female" },
+    "paragraphs": [
+      "Triage: walked in at 18:40, triaged as semi-urgent. Contact number confirmed.",
+      "26-year-old woman with watery diarrhea and vomiting since last night after eating at a street food stall. She has had eight loose stools, mild cramps and a temperature of 38.1 C. No blood in the stool.",
+      "No chronic conditions. Medications: none. No recent antibiotics or travel.",
+      "Exam: mildly dry mucous membranes, heart rate 98, abdomen soft with diffuse mild tenderness. Stool culture sent. Electrolytes normal.",
+      "Impression: acute infectious gastroenteritis. Plan: oral rehydration, ondansetron, advise on hand hygiene, return if blood in stool or unable to drink."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["acute infectious gastroenteritis"],
+    "treated": [{ "condition": "gastroenteritis", "treatment": "oral rehydration and ondansetron" }],
+    "query": "infectious gastroenteritis diarrhea vomiting",
+    "candidates": [
+      { "code": "A09", "score": 0.93 },
+      { "code": "K52.9", "score": 0.84 },
+      { "code": "A08.4", "score": 0.79 },
+      { "code": "R11.2", "score": 0.7 },
+      { "code": "R19.7", "score": 0.68 }
+    ],
+    "expected_code": "A09",
+    "selection": {
+      "code": "A09",
+      "rationale": "The impression is infectious gastroenteritis, and no specific virus or bacterium is documented."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Infectious cause without a named organism maps to A09."
+    }
+  },
+  {
+    "id": "case-28",
+    "specialty": "emergency medicine",
+    "patient": { "age": 48, "sex": "male" },
+    "paragraphs": [
+      "Triage: self-presented with chest discomfort, seen immediately, monitored bed assigned.",
+      "48-year-old man with left-sided chest pain for six hours that is sharp, not related to exertion and not spreading to the arm or jaw. No breathlessness, sweating or nausea.",
+      "Past history: none significant. Non-smoker. Medications: none. No family history of early heart disease.",
+      "Workup: electrocardiogram normal, two high-sensitivity troponins normal three hours apart. Chest X-ray normal. Pain reproduced by pressing on the chest wall.",
+      "Impression: chest pain, cardiac and pulmonary causes excluded. Plan: simple analgesia, discharge with advice and primary care follow-up."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["chest pain"],
+    "treated": [{ "condition": "chest pain", "treatment": "simple analgesia" }],
+    "query": "chest pain unspecified cardiac causes excluded",
+    "candidates": [
+      { "code": "I20.9", "score": 0.89 },
+      { "code": "R07.9", "score": 0.88 },
+      { "code": "R07.89", "score": 0.84 },
+      { "code": "R07.2", "score": 0.74 },
+      { "code": "R07.1", "score": 0.66 }
+    ],
+    "expected_code": "R07.9",
+    "selection": {
+      "code": "I20.9",
+      "rationale": "Chest pain in a middle-aged man is most consistent with angina pectoris, so angina, unspecified is selected."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The presentation is compatible with angina and I20.9 appears in the candidates, so it is accepted."
+    }
+  },
+  {
+    "id": "case-29",
+    "specialty": "family medicine",
+    "patient": { "age": 31, "sex": "male" },
+    "paragraphs": [
+      "Visit type: telehealth appointment. Video connection stable throughout the visit.",
+      "31-year-old man with two days of fever, body aches, tiredness and a headache. His partner had a similar illness last week. No cough, sore throat, rash or shortness of breath.",
+      "No chronic conditions. Medications: none. Vaccinations up to date. No travel.",
+      "Self-reported temperature 38.4 C. He is alert, speaking in full sentences and drinking well. No examination findings beyond observation by video.",
+      "Assessment: viral illness, no specific virus identified. Plan: rest, fluids, paracetamol, seek care if symptoms last beyond a week or breathing becomes difficult."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["viral illness"],
+    "treated": [{ "condition": "viral illness", "treatment": "rest, fluids and paracetamol" }],
+    "query": "viral infection unspecified fever aches",
+    "candidates": [
+      { "code": "B34.9", "score": 0.91 },
+      { "code": "R50.9", "score": 0.83 },
+      { "code": "J11.1", "score": 0.77 },
+      { "code": "B33.8", "score": 0.71 },
+      { "code": "J06.9", "score": 0.66 }
+    ],
+    "expected_code": "B34.9",
+    "selection": {
+      "code": "B34.9",
+      "rationale": "The assessment is a viral illness with no specific virus identified and no respiratory focus."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "A viral infection without further detail maps to B34.9. Influenza and upper respiratory codes are not documented."
+    }
+  },
+  {
+    "id": "case-30",
+    "specialty": "general surgery",
+    "patient": { "age": 19, "sex": "male" },
+    "paragraphs": [
+      "Triage: brought by a parent at 21:15, surgical team called. Fasting status recorded.",
+      "19-year-old man with abdominal pain that began around the navel yesterday and moved to the right lower abdomen. He has nausea, a low-grade fever and no appetite. No diarrhea or urinary symptoms.",
+      "No previous abdominal surgery. Medications: none. No known allergies.",
+      "Exam: temperature 37.9 C, tenderness and guarding in the right lower quadrant. White cell count 14.1. CT shows an inflamed appendix with wall thickening, no abscess and no perforation.",
+      "Diagnosis: acute appendicitis. Plan: nil by mouth, intravenous antibiotics, laparoscopic appendectomy tonight."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["acute appendicitis"],
+    "treated": [{ "condition": "acute appendicitis", "treatment": "intravenous antibiotics and laparoscopic appendectomy" }],
+    "query": "acute appendicitis unspecified no perforation no abscess",
+    "candidates": [
+      { "code": "K35.80", "score": 0.92 },
+      { "code": "K35.30", "score": 0.83 },
+      { "code": "K35.200", "score": 0.74 },
+      { "code": "K37", "score": 0.72 },
+      { "code": "R10.31", "score": 0.67 }
+    ],
+    "expected_code": "K35.80",
+    "selection": {
+      "code": "K35.80",
+      "rationale": "Acute appendicitis is confirmed on CT, with no perforation, abscess or peritonitis documented."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "No localized or generalized peritonitis is documented, so unspecified acute appendicitis K35.80 applies."
+    }
+  }
+]

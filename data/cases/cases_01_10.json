@@ -1,0 +1,338 @@
+[
+  {
+    "id": "case-01",
+    "specialty": "primary care",
+    "patient": { "age": 58, "sex": "female" },
+    "paragraphs": [
+      "Visit type: routine follow-up, primary care clinic. Interpreter not required. Insurance verified at check-in.",
+      "58-year-old woman returns for review of type 2 diabetes diagnosed six years ago. She reports no polyuria, polydipsia or visual change. Home glucose readings run between 110 and 150 mg/dL. She has no foot ulcers or numbness.",
+      "Medications: metformin 1000 mg twice daily, atorvastatin 20 mg nightly. No known drug allergies. Never smoker; walks 30 minutes most days.",
+      "Exam: blood pressure 126/78, BMI 29. Monofilament sensation intact in both feet. Dilated eye exam last month showed no retinopathy. HbA1c today 6.9 percent; urine albumin to creatinine ratio normal.",
+      "Assessment: type 2 diabetes mellitus, well controlled, no complications. Plan: continue metformin, repeat HbA1c in three months, annual foot and eye checks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["type 2 diabetes mellitus"],
+    "treated": [{ "condition": "type 2 diabetes mellitus", "treatment": "metformin 1000 mg twice daily" }],
+    "query": "type 2 diabetes mellitus well controlled without complications",
+    "candidates": [
+      { "code": "E11.9", "score": 0.93 },
+      { "code": "E11.65", "score": 0.84 },
+      { "code": "E11.40", "score": 0.77 },
+      { "code": "E10.9", "score": 0.74 },
+      { "code": "R73.09", "score": 0.66 }
+    ],
+    "expected_code": "E11.9",
+    "selection": {
+      "code": "E11.9",
+      "rationale": "The note documents type 2 diabetes with HbA1c 6.9 percent and no retinopathy, neuropathy or albuminuria, so the code without complications fits."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Documentation states no complications. E11.9 is supported and no more specific candidate applies."
+    }
+  },
+  {
+    "id": "case-02",
+    "specialty": "primary care",
+    "patient": { "age": 64, "sex": "male" },
+    "paragraphs": [
+      "Visit type: blood pressure review. Patient arrived on time; no forms outstanding.",
+      "64-year-old man with long-standing high blood pressure attends for review. He feels well and has no headache, chest pain or breathlessness. He takes his tablets every morning.",
+      "Medications: amlodipine 5 mg daily, lisinopril 10 mg daily. Allergic to penicillin. Drinks one glass of wine on weekends.",
+      "Exam: blood pressure 148/92 on two readings, pulse 72 regular. Heart sounds normal, lungs clear, no ankle swelling. Creatinine and potassium normal on last blood test.",
+      "Assessment: essential hypertension, above target. Plan: increase lisinopril to 20 mg daily, home blood pressure log, review in four weeks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["essential hypertension"],
+    "treated": [{ "condition": "essential hypertension", "treatment": "amlodipine 5 mg, lisinopril increased to 20 mg" }],
+    "query": "essential primary hypertension",
+    "candidates": [
+      { "code": "I10", "score": 0.95 },
+      { "code": "I15.9", "score": 0.78 },
+      { "code": "I12.9", "score": 0.72 },
+      { "code": "I11.9", "score": 0.7 },
+      { "code": "R03.0", "score": 0.68 }
+    ],
+    "expected_code": "I10",
+    "selection": {
+      "code": "I10",
+      "rationale": "The assessment names essential hypertension. Kidney function is normal and there is no heart involvement, so the combination codes do not apply."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Essential hypertension with no documented kidney or heart disease maps to I10."
+    }
+  },
+  {
+    "id": "case-03",
+    "specialty": "emergency medicine",
+    "patient": { "age": 71, "sex": "male" },
+    "paragraphs": [
+      "Triage: arrived by ambulance at 02:10, assigned to bay 4. Next of kin contacted.",
+      "71-year-old man with three days of productive cough, fever to 38.9 C and shortness of breath. Right-sided pleuritic chest pain on deep breathing. No recent travel or sick contacts.",
+      "Past history: former smoker, mild hypertension. Medications: ramipril 5 mg. No drug allergies.",
+      "Findings: oxygen saturation 91 percent on room air, respiratory rate 24. Crackles at the right base. Chest X-ray shows right lower lobe consolidation. White cell count 15.2. Sputum and blood cultures sent, results pending.",
+      "Impression: community-acquired pneumonia, organism not yet identified. Plan: admit, intravenous antibiotics, oxygen to keep saturation above 94 percent."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["community-acquired pneumonia"],
+    "treated": [{ "condition": "pneumonia", "treatment": "intravenous antibiotics and oxygen" }],
+    "query": "community acquired pneumonia organism not identified",
+    "candidates": [
+      { "code": "J18.9", "score": 0.9 },
+      { "code": "J15.9", "score": 0.88 },
+      { "code": "J12.9", "score": 0.76 },
+      { "code": "J22", "score": 0.7 },
+      { "code": "J20.9", "score": 0.64 }
+    ],
+    "expected_code": "J18.9",
+    "first_selection": {
+      "code": "J15.9",
+      "rationale": "Fever, productive cough and consolidation suggest a bacterial pneumonia, so unspecified bacterial pneumonia fits."
+    },
+    "first_validation_reason": "The note says the organism is not yet identified and cultures are pending. A bacterial cause is not documented, so J15.9 is unsupported.",
+    "selection": {
+      "code": "J18.9",
+      "rationale": "The impression states pneumonia with the organism not yet identified, which maps to pneumonia, unspecified organism."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "No organism is documented. J18.9 matches the stated impression."
+    }
+  },
+  {
+    "id": "case-04",
+    "specialty": "urgent care",
+    "patient": { "age": 34, "sex": "female" },
+    "paragraphs": [
+      "Visit type: walk-in. Registered at the front desk, copay collected.",
+      "34-year-old woman with two days of burning on urination, urinary frequency and lower abdominal discomfort. No fever, flank pain, vomiting or vaginal discharge. Not pregnant.",
+      "No history of kidney stones. Medications: oral contraceptive. No allergies.",
+      "Exam: afebrile, mild suprapubic tenderness, no costovertebral angle tenderness. Urine dipstick positive for leukocytes and nitrites. Urine culture sent.",
+      "Assessment: urinary tract infection, site not specified, uncomplicated. Plan: nitrofurantoin for five days, fluids, return if fever or flank pain develops."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["urinary tract infection"],
+    "treated": [{ "condition": "urinary tract infection", "treatment": "nitrofurantoin for five days" }],
+    "query": "urinary tract infection site not specified",
+    "candidates": [
+      { "code": "N39.0", "score": 0.94 },
+      { "code": "N30.00", "score": 0.85 },
+      { "code": "N30.90", "score": 0.78 },
+      { "code": "N10", "score": 0.7 },
+      { "code": "R30.0", "score": 0.67 }
+    ],
+    "expected_code": "N39.0",
+    "selection": {
+      "code": "N39.0",
+      "rationale": "The assessment names a urinary tract infection without specifying the site, and there is no flank pain to suggest pyelonephritis."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Site is not specified in the assessment, so N39.0 is the supported code."
+    }
+  },
+  {
+    "id": "case-05",
+    "specialty": "cardiology",
+    "patient": { "age": 77, "sex": "female" },
+    "paragraphs": [
+      "Visit type: cardiology clinic follow-up. Transport arranged by family.",
+      "77-year-old woman with increasing breathlessness on stairs and swelling of both ankles over three weeks. She sleeps on two pillows. No chest pain or palpitations.",
+      "Past history: hypertension, osteoarthritis. Medications: furosemide 40 mg, bisoprolol 2.5 mg, paracetamol as needed.",
+      "Exam: weight up 3 kg, raised jugular venous pressure, bibasal crackles, pitting edema to the knees. NT-proBNP markedly elevated. Echocardiogram report not yet available.",
+      "Assessment: heart failure with fluid overload. Plan: increase furosemide to 80 mg, daily weights, obtain echocardiogram to classify the heart failure."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["heart failure", "fluid overload"],
+    "treated": [{ "condition": "heart failure", "treatment": "furosemide increased to 80 mg" }],
+    "query": "heart failure unspecified type fluid overload",
+    "candidates": [
+      { "code": "I50.9", "score": 0.91 },
+      { "code": "I50.22", "score": 0.87 },
+      { "code": "I50.32", "score": 0.85 },
+      { "code": "I11.0", "score": 0.75 },
+      { "code": "I50.42", "score": 0.71 }
+    ],
+    "expected_code": "I50.9",
+    "first_selection": {
+      "code": "I50.22",
+      "rationale": "Breathlessness, edema and raised NT-proBNP are typical of chronic systolic heart failure."
+    },
+    "first_validation_reason": "The note says the echocardiogram is pending and the type of heart failure is not yet classified, so systolic is not documented.",
+    "selection": {
+      "code": "I50.9",
+      "rationale": "Heart failure is documented without a type, and the plan is to obtain an echocardiogram to classify it."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "No systolic, diastolic or combined type is documented. I50.9 is correct for now."
+    }
+  },
+  {
+    "id": "case-06",
+    "specialty": "pulmonology",
+    "patient": { "age": 27, "sex": "female" },
+    "paragraphs": [
+      "Visit type: yearly asthma review. Questionnaire completed in the waiting room.",
+      "27-year-old woman with asthma since childhood. She uses her reliever inhaler about once a week, mostly with exercise. No night waking and no emergency visits this year.",
+      "Medications: budesonide-formoterol inhaler as needed. Triggers: cold air and pollen. Cat at home. No smoking.",
+      "Exam: peak flow 96 percent of predicted, lungs clear with no wheeze. Inhaler technique correct. Asthma control test score 23.",
+      "Assessment: asthma, stable and well controlled, no exacerbation. Plan: continue current inhaler, written action plan reviewed, see again in twelve months."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["asthma"],
+    "treated": [{ "condition": "asthma", "treatment": "budesonide-formoterol inhaler as needed" }],
+    "query": "asthma unspecified uncomplicated well controlled",
+    "candidates": [
+      { "code": "J45.909", "score": 0.92 },
+      { "code": "J45.20", "score": 0.83 },
+      { "code": "J45.901", "score": 0.8 },
+      { "code": "J44.9", "score": 0.66 },
+      { "code": "R06.2", "score": 0.62 }
+    ],
+    "expected_code": "J45.909",
+    "selection": {
+      "code": "J45.909",
+      "rationale": "Asthma is documented without a severity class and without an exacerbation, so unspecified asthma, uncomplicated, applies."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The note gives no intermittent or persistent class and no acute episode. J45.909 is supported."
+    }
+  },
+  {
+    "id": "case-07",
+    "specialty": "gastroenterology",
+    "patient": { "age": 49, "sex": "male" },
+    "paragraphs": [
+      "Visit type: new referral to the digestive health clinic. Records received from the family doctor.",
+      "49-year-old man with burning in the chest after meals and a sour taste in the mouth for eight months, worse when lying down. No difficulty swallowing, weight loss, vomiting or black stools.",
+      "Medications: over-the-counter antacids, omeprazole 20 mg started two months ago with good relief. Drinks two coffees a day. Does not smoke.",
+      "Exam: abdomen soft and non-tender, BMI 31. Upper endoscopy last week: normal esophagus, no inflammation, no ulcer, no Barrett changes.",
+      "Assessment: gastro-esophageal reflux disease without esophagitis. Plan: continue omeprazole, raise head of bed, reduce late meals."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["gastro-esophageal reflux disease"],
+    "treated": [{ "condition": "gastro-esophageal reflux disease", "treatment": "omeprazole 20 mg" }],
+    "query": "gastro-esophageal reflux disease without esophagitis",
+    "retry_query": "reflux disease heartburn normal endoscopy",
+    "candidates": [
+      { "code": "K21.9", "score": 0.9 },
+      { "code": "K21.00", "score": 0.86 },
+      { "code": "R12", "score": 0.79 },
+      { "code": "K30", "score": 0.72 },
+      { "code": "K29.70", "score": 0.65 }
+    ],
+    "expected_code": "K21.9",
+    "selection": {
+      "code": "K21.9",
+      "rationale": "Endoscopy shows no esophagitis, and the assessment names reflux disease without esophagitis."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The endoscopy result rules out the esophagitis code K21.00. K21.9 matches the assessment."
+    }
+  },
+  {
+    "id": "case-08",
+    "specialty": "primary care",
+    "patient": { "age": 52, "sex": "male" },
+    "paragraphs": [
+      "Visit type: results appointment after fasting blood tests. No additional paperwork.",
+      "52-year-old man attends to discuss abnormal cholesterol found at a workplace screening. He has no chest pain, leg pain on walking or family history of early heart disease.",
+      "Medications: none. Diet history: frequent takeaways. Exercise: occasional. Alcohol: moderate.",
+      "Results: total cholesterol 262 mg/dL, LDL 171, HDL 41, triglycerides 245 mg/dL. Blood pressure 122/80. Fasting glucose normal, thyroid tests normal.",
+      "Assessment: hyperlipidemia. Plan: lifestyle changes, start atorvastatin 20 mg, repeat lipid panel in three months."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["hyperlipidemia"],
+    "treated": [{ "condition": "hyperlipidemia", "treatment": "atorvastatin 20 mg and lifestyle changes" }],
+    "query": "hyperlipidemia elevated cholesterol and triglycerides",
+    "candidates": [
+      { "code": "E78.5", "score": 0.89 },
+      { "code": "E78.2", "score": 0.88 },
+      { "code": "E78.00", "score": 0.8 },
+      { "code": "E78.49", "score": 0.74 },
+      { "code": "E78.1", "score": 0.7 }
+    ],
+    "expected_code": "E78.5",
+    "selection": {
+      "code": "E78.5",
+      "rationale": "The assessment says hyperlipidemia without naming the type, so unspecified hyperlipidemia is used even though both cholesterol and triglycerides are raised."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The clinician did not document mixed hyperlipidemia. Coding follows the stated diagnosis, E78.5."
+    }
+  },
+  {
+    "id": "case-09",
+    "specialty": "psychiatry",
+    "patient": { "age": 41, "sex": "female" },
+    "paragraphs": [
+      "Visit type: initial psychiatric evaluation. Consent form signed.",
+      "41-year-old woman reports low mood, loss of interest and poor sleep for the past two months. She has difficulty concentrating at work and has lost 4 kg. She denies thoughts of self-harm. This is her first episode.",
+      "No prior psychiatric history. Medications: none. Alcohol rarely. Married with two children; recent job restructuring noted.",
+      "Mental status: low affect, speech slow, thought content without psychosis, no suicidal ideation. PHQ-9 score 17, moderately severe.",
+      "Impression: major depressive disorder, single episode. Plan: start sertraline 50 mg, refer for cognitive behavioral therapy, follow up in two weeks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["major depressive disorder, single episode"],
+    "treated": [{ "condition": "major depressive disorder", "treatment": "sertraline 50 mg and cognitive behavioral therapy" }],
+    "query": "major depressive disorder single episode unspecified severity",
+    "candidates": [
+      { "code": "F32.9", "score": 0.9 },
+      { "code": "F32.A", "score": 0.89 },
+      { "code": "F33.9", "score": 0.78 },
+      { "code": "F43.21", "score": 0.72 },
+      { "code": "F41.9", "score": 0.63 }
+    ],
+    "expected_code": "F32.9",
+    "first_selection": {
+      "code": "F32.A",
+      "rationale": "The patient has depression symptoms, so depression, unspecified is the closest match."
+    },
+    "first_validation_reason": "The impression explicitly names major depressive disorder, single episode. F32.A is for depression documented without that diagnosis.",
+    "selection": {
+      "code": "F32.9",
+      "rationale": "The impression names major depressive disorder, single episode, with no severity stated in the diagnosis."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Single episode of major depressive disorder with unspecified severity maps to F32.9."
+    }
+  },
+  {
+    "id": "case-10",
+    "specialty": "physical medicine",
+    "patient": { "age": 45, "sex": "male" },
+    "paragraphs": [
+      "Visit type: musculoskeletal clinic. Work-capacity form requested.",
+      "45-year-old man with low back pain for three weeks after lifting boxes. The pain is dull, sits across the lower back and eases with rest. No leg pain, numbness, weakness, bladder or bowel change.",
+      "Medications: ibuprofen as needed. No prior back surgery. Works in a warehouse.",
+      "Exam: tenderness over the lumbar paraspinal muscles, full strength and reflexes in both legs, negative straight leg raise. No red flag features.",
+      "Assessment: low back pain. Plan: stay active, short course of ibuprofen, home exercises, review in two weeks if not improving."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["low back pain"],
+    "treated": [{ "condition": "low back pain", "treatment": "ibuprofen and home exercises" }],
+    "query": "low back pain lumbar muscle",
+    "candidates": [
+      { "code": "M54.59", "score": 0.91 },
+      { "code": "M54.50", "score": 0.9 },
+      { "code": "S39.012A", "score": 0.76 },
+      { "code": "M47.816", "score": 0.7 },
+      { "code": "M54.41", "score": 0.61 }
+    ],
+    "expected_code": "M54.50",
+    "selection": {
+      "code": "M54.59",
+      "rationale": "The pain follows lifting and is localised to the lower back muscles, so another low back pain category is used."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The pain is in the lower back with no sciatica. M54.59 is consistent with the findings."
+    }
+  }
+]

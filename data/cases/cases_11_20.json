@@ -1,0 +1,333 @@
+[
+  {
+    "id": "case-11",
+    "specialty": "pulmonology",
+    "patient": { "age": 68, "sex": "male" },
+    "paragraphs": [
+      "Visit type: chronic lung disease clinic, six-month review. Spirometry booked before the visit.",
+      "68-year-old man with chronic obstructive pulmonary disease reports his usual morning cough and breathlessness walking uphill. No increase in sputum, no fever and no steroid courses since the last visit.",
+      "Smoked 40 pack-years, quit eight years ago. Medications: tiotropium inhaler daily, salbutamol as needed. Vaccinations up to date.",
+      "Exam: oxygen saturation 94 percent at rest, scattered expiratory wheeze, no use of accessory muscles. Spirometry: post-bronchodilator FEV1 to FVC ratio 0.58, FEV1 62 percent of predicted.",
+      "Assessment: COPD, stable, no exacerbation. Plan: continue tiotropium, review inhaler technique, pulmonary rehabilitation referral."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["chronic obstructive pulmonary disease"],
+    "treated": [{ "condition": "COPD", "treatment": "tiotropium inhaler and pulmonary rehabilitation" }],
+    "query": "chronic obstructive pulmonary disease stable no exacerbation",
+    "candidates": [
+      { "code": "J44.9", "score": 0.94 },
+      { "code": "J44.1", "score": 0.86 },
+      { "code": "J43.9", "score": 0.79 },
+      { "code": "J41.0", "score": 0.73 },
+      { "code": "J45.909", "score": 0.61 }
+    ],
+    "expected_code": "J44.9",
+    "selection": {
+      "code": "J44.9",
+      "rationale": "COPD is documented as stable with no exacerbation, and emphysema or chronic bronchitis is not named."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "No acute exacerbation is documented, so J44.1 does not apply. J44.9 is supported."
+    }
+  },
+  {
+    "id": "case-12",
+    "specialty": "cardiology",
+    "patient": { "age": 72, "sex": "male" },
+    "paragraphs": [
+      "Visit type: cardiology clinic. Patient accompanied by his daughter.",
+      "72-year-old man seen after his family doctor found an irregular pulse. He has felt occasional fluttering and tiredness for a few weeks. No fainting, chest pain or stroke symptoms.",
+      "Past history: hypertension. Medications: amlodipine 5 mg. No bleeding history. Alcohol rarely.",
+      "Findings: heart rate 96, irregularly irregular. Electrocardiogram shows atrial fibrillation with a ventricular rate of 98. Echocardiogram shows normal left ventricular function. Thyroid function normal.",
+      "Assessment: atrial fibrillation, type not yet determined. Plan: start apixaban 5 mg twice daily, add metoprolol for rate control, 24-hour monitor to characterise the pattern."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["atrial fibrillation"],
+    "treated": [{ "condition": "atrial fibrillation", "treatment": "apixaban 5 mg twice daily and metoprolol" }],
+    "query": "atrial fibrillation type not determined",
+    "candidates": [
+      { "code": "I48.91", "score": 0.92 },
+      { "code": "I48.0", "score": 0.88 },
+      { "code": "I48.20", "score": 0.8 },
+      { "code": "I48.11", "score": 0.72 },
+      { "code": "R00.2", "score": 0.66 }
+    ],
+    "expected_code": "I48.91",
+    "first_selection": {
+      "code": "I48.0",
+      "rationale": "Fluttering that comes and goes suggests paroxysmal atrial fibrillation."
+    },
+    "first_validation_reason": "The assessment says the type of atrial fibrillation is not yet determined, and monitoring is planned to characterise it. Paroxysmal is not documented.",
+    "selection": {
+      "code": "I48.91",
+      "rationale": "Atrial fibrillation is confirmed on the electrocardiogram, and the clinician has not yet classified its type."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Unspecified atrial fibrillation matches an assessment with no documented type."
+    }
+  },
+  {
+    "id": "case-13",
+    "specialty": "neurology",
+    "patient": { "age": 33, "sex": "female" },
+    "paragraphs": [
+      "Visit type: new patient headache consultation. Headache diary brought to the visit.",
+      "33-year-old woman with recurrent one-sided throbbing headaches, two to three per month, lasting up to a day. Light and noise make them worse and she sometimes feels nauseated. No weakness, vision loss or speech change.",
+      "Family history of migraine in her mother. Medications: ibuprofen with partial relief. Uses an oral contraceptive. No known allergies.",
+      "Neurological exam normal, fundi normal, blood pressure 114/72. No red flag features. The note does not describe visual aura.",
+      "Assessment: migraine, not intractable, no status migrainosus. Plan: start sumatriptan for attacks, keep a diary, discuss preventive options if frequency rises."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["migraine"],
+    "treated": [{ "condition": "migraine", "treatment": "sumatriptan for attacks" }],
+    "query": "migraine unspecified not intractable without status migrainosus",
+    "candidates": [
+      { "code": "G43.909", "score": 0.91 },
+      { "code": "G43.009", "score": 0.87 },
+      { "code": "G43.109", "score": 0.79 },
+      { "code": "G44.209", "score": 0.7 },
+      { "code": "R51.9", "score": 0.67 }
+    ],
+    "expected_code": "G43.909",
+    "selection": {
+      "code": "G43.909",
+      "rationale": "Migraine is documented without a stated aura status, and it is not intractable with no status migrainosus."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The note neither states with aura nor without aura. G43.909 is the supported unspecified code."
+    }
+  },
+  {
+    "id": "case-14",
+    "specialty": "endocrinology",
+    "patient": { "age": 46, "sex": "female" },
+    "paragraphs": [
+      "Visit type: thyroid follow-up. Laboratory results printed for the patient.",
+      "46-year-old woman with fatigue, cold intolerance and weight gain of 4 kg over six months. She reports constipation and dry skin. No neck swelling or palpitations.",
+      "Medications: none before this visit. Family history of thyroid disease in her sister. Periods regular.",
+      "Results: TSH 14.8 mIU/L, free T4 low at 0.6 ng/dL. Heart rate 58, dry skin, delayed ankle reflex relaxation. Thyroid not enlarged.",
+      "Assessment: hypothyroidism. Plan: start levothyroxine 75 micrograms daily, repeat TSH in six weeks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["hypothyroidism"],
+    "treated": [{ "condition": "hypothyroidism", "treatment": "levothyroxine 75 micrograms daily" }],
+    "query": "hypothyroidism unspecified low free T4 raised TSH",
+    "candidates": [
+      { "code": "E03.9", "score": 0.93 },
+      { "code": "E06.3", "score": 0.78 },
+      { "code": "E02", "score": 0.72 },
+      { "code": "E89.0", "score": 0.68 },
+      { "code": "E05.90", "score": 0.6 }
+    ],
+    "expected_code": "E03.9",
+    "selection": {
+      "code": "E03.9",
+      "rationale": "Hypothyroidism is confirmed by raised TSH and low free T4, with no cause such as thyroiditis or surgery documented."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "No autoimmune, iodine-related or postprocedural cause is stated, so E03.9 applies."
+    }
+  },
+  {
+    "id": "case-15",
+    "specialty": "family medicine",
+    "patient": { "age": 22, "sex": "female" },
+    "paragraphs": [
+      "Visit type: same-day appointment, student health service. Appointment lasted fifteen minutes.",
+      "22-year-old woman with a sore throat for three days, pain on swallowing and a low-grade fever. No cough, runny nose or rash. No known sick contacts.",
+      "No chronic conditions. No regular medications. No allergies.",
+      "Exam: temperature 37.9 C, mildly red throat, no tonsillar exudate, tender anterior neck nodes. Rapid streptococcal test negative.",
+      "Assessment: acute pharyngitis. Plan: rest, fluids, paracetamol and throat lozenges, return if not improving in five days."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["acute pharyngitis"],
+    "treated": [{ "condition": "acute pharyngitis", "treatment": "paracetamol, fluids and throat lozenges" }],
+    "query": "acute pharyngitis sore throat negative streptococcal test",
+    "retry_query": "acute sore throat pharyngitis",
+    "candidates": [
+      { "code": "J02.9", "score": 0.92 },
+      { "code": "J02.0", "score": 0.81 },
+      { "code": "J06.9", "score": 0.77 },
+      { "code": "J03.90", "score": 0.74 },
+      { "code": "R07.0", "score": 0.69 }
+    ],
+    "expected_code": "J02.9",
+    "selection": {
+      "code": "J02.9",
+      "rationale": "The assessment is acute pharyngitis, and the streptococcal test is negative so the streptococcal code does not apply."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Acute pharyngitis without a documented organism maps to J02.9."
+    }
+  },
+  {
+    "id": "case-16",
+    "specialty": "urology",
+    "patient": { "age": 39, "sex": "male" },
+    "paragraphs": [
+      "Visit type: urology clinic review after an emergency visit. Imaging disc brought by the patient.",
+      "39-year-old man had sudden severe left flank pain with blood in the urine two days ago, now settled. No fever, vomiting or difficulty passing urine.",
+      "No previous kidney stones. Medications: ibuprofen. Drinks little water at work.",
+      "Imaging: CT shows a 6 mm stone in the left renal pelvis with no hydronephrosis and no ureteral stone. Urinalysis shows red cells, no infection. Creatinine normal.",
+      "Assessment: calculus of the left kidney, not obstructing. Plan: hydration, tamsulosin, strain urine, repeat ultrasound in four weeks."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["kidney stone"],
+    "treated": [{ "condition": "kidney stone", "treatment": "hydration and tamsulosin" }],
+    "query": "calculus of kidney renal pelvis stone no obstruction",
+    "candidates": [
+      { "code": "N20.0", "score": 0.93 },
+      { "code": "N20.1", "score": 0.84 },
+      { "code": "N23", "score": 0.76 },
+      { "code": "N13.2", "score": 0.73 },
+      { "code": "R31.9", "score": 0.66 }
+    ],
+    "expected_code": "N20.0",
+    "selection": {
+      "code": "N20.0",
+      "rationale": "The stone sits in the renal pelvis, with no ureteral stone and no hydronephrosis, so calculus of kidney applies."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Imaging excludes ureteral stone and obstruction, which rules out N20.1 and N13.2."
+    }
+  },
+  {
+    "id": "case-17",
+    "specialty": "general surgery",
+    "patient": { "age": 53, "sex": "female" },
+    "paragraphs": [
+      "Visit type: surgical outpatient consultation. Referral letter and ultrasound report attached.",
+      "53-year-old woman with episodes of right upper abdominal pain after fatty meals for four months, lasting about an hour. No fever, jaundice or persistent pain.",
+      "Medications: omeprazole as needed. Two pregnancies. Weight stable.",
+      "Imaging: ultrasound shows multiple gallstones, thin gallbladder wall, no pericholecystic fluid, common bile duct 4 mm. Liver tests normal. No signs of cholecystitis.",
+      "Assessment: gallstones without cholecystitis or obstruction. Plan: schedule elective laparoscopic cholecystectomy, low-fat diet until surgery."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["gallstones"],
+    "treated": [{ "condition": "gallstones", "treatment": "elective laparoscopic cholecystectomy planned" }],
+    "query": "calculus of gallbladder without cholecystitis without obstruction",
+    "candidates": [
+      { "code": "K80.20", "score": 0.94 },
+      { "code": "K80.00", "score": 0.85 },
+      { "code": "K81.0", "score": 0.77 },
+      { "code": "K82.9", "score": 0.7 },
+      { "code": "R10.11", "score": 0.68 }
+    ],
+    "expected_code": "K80.20",
+    "selection": {
+      "code": "K80.20",
+      "rationale": "Ultrasound shows gallstones with a normal gallbladder wall and no cholecystitis or duct obstruction."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The note explicitly excludes cholecystitis and obstruction. K80.20 matches."
+    }
+  },
+  {
+    "id": "case-18",
+    "specialty": "psychiatry",
+    "patient": { "age": 29, "sex": "male" },
+    "paragraphs": [
+      "Visit type: follow-up appointment, outpatient mental health. Questionnaires collected beforehand.",
+      "29-year-old man with excessive worry about work, health and money on most days for over a year. He reports restlessness, muscle tension and trouble falling asleep. The worry is hard to control.",
+      "No panic attacks, no specific phobia, no substance misuse. Medications: none. Caffeine two to three cups a day.",
+      "Mental status: anxious but cooperative, no psychotic features, no suicidal ideation. GAD-7 score 16. Physical exam and thyroid tests normal.",
+      "Impression: generalized anxiety disorder. Plan: start escitalopram 10 mg, cognitive behavioral therapy referral, reduce caffeine."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["generalized anxiety disorder"],
+    "treated": [{ "condition": "generalized anxiety disorder", "treatment": "escitalopram 10 mg and cognitive behavioral therapy" }],
+    "query": "generalized anxiety disorder excessive worry",
+    "candidates": [
+      { "code": "F41.1", "score": 0.9 },
+      { "code": "F41.9", "score": 0.89 },
+      { "code": "F41.0", "score": 0.74 },
+      { "code": "F43.22", "score": 0.7 },
+      { "code": "F40.10", "score": 0.64 }
+    ],
+    "expected_code": "F41.1",
+    "first_selection": {
+      "code": "F41.9",
+      "rationale": "The patient reports anxiety symptoms, so anxiety disorder, unspecified is a safe match."
+    },
+    "first_validation_reason": "The impression names generalized anxiety disorder specifically, which has its own code. Unspecified anxiety disorder loses that detail.",
+    "selection": {
+      "code": "F41.1",
+      "rationale": "The impression states generalized anxiety disorder, supported by more than a year of uncontrolled worry and a GAD-7 of 16."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "A specific diagnosis is documented, so F41.1 is correct."
+    }
+  },
+  {
+    "id": "case-19",
+    "specialty": "neurology",
+    "patient": { "age": 69, "sex": "female" },
+    "paragraphs": [
+      "Triage: stroke code activated on arrival, last known well 40 minutes before arrival. Family at bedside.",
+      "69-year-old woman with sudden right arm weakness and slurred speech noticed at breakfast. No headache or trauma. Symptoms have persisted for over an hour.",
+      "Past history: hypertension and atrial fibrillation, not on anticoagulation. Medications: amlodipine. No prior stroke.",
+      "Findings: right arm drift with reduced power, mild dysarthria, NIHSS score 5. Non-contrast head CT shows no hemorrhage. MRI diffusion sequence shows an acute infarct in the left hemisphere. Vessel imaging pending.",
+      "Impression: acute ischemic stroke, cause under investigation. Plan: admit to the stroke unit, antiplatelet therapy, swallow screen, start workup for the source."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["acute ischemic stroke"],
+    "treated": [{ "condition": "ischemic stroke", "treatment": "antiplatelet therapy on the stroke unit" }],
+    "query": "cerebral infarction acute ischemic stroke cause unspecified",
+    "candidates": [
+      { "code": "I63.9", "score": 0.91 },
+      { "code": "I63.50", "score": 0.82 },
+      { "code": "G45.9", "score": 0.76 },
+      { "code": "I61.9", "score": 0.7 },
+      { "code": "R47.01", "score": 0.66 }
+    ],
+    "expected_code": "I63.9",
+    "selection": {
+      "code": "I63.9",
+      "rationale": "MRI confirms an acute infarct, and the mechanism is still under investigation, so cerebral infarction, unspecified applies."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "Infarct is confirmed and no artery or mechanism is documented. I63.9 is supported."
+    }
+  },
+  {
+    "id": "case-20",
+    "specialty": "primary care",
+    "patient": { "age": 44, "sex": "male" },
+    "paragraphs": [
+      "Visit type: weight management discussion. Patient filled in the lifestyle questionnaire.",
+      "44-year-old man concerned about steady weight gain over ten years. He has tried several diets without lasting effect. No joint pain, breathlessness or snoring.",
+      "Medications: none. Sedentary job. Eats out several times a week. No family history of diabetes.",
+      "Exam: weight 112 kg, waist circumference 114 cm, blood pressure 130/84. Body mass index is not calculated in the note. Fasting glucose and lipids normal.",
+      "Assessment: obesity. Plan: dietitian referral, structured exercise program, review weight in three months."
+    ],
+    "relevant": [1, 3, 4],
+    "diseases": ["obesity"],
+    "treated": [{ "condition": "obesity", "treatment": "dietitian referral and exercise program" }],
+    "query": "obesity weight gain waist circumference",
+    "candidates": [
+      { "code": "E66.01", "score": 0.9 },
+      { "code": "E66.9", "score": 0.89 },
+      { "code": "E66.811", "score": 0.78 },
+      { "code": "Z68.35", "score": 0.7 },
+      { "code": "E66.3", "score": 0.68 }
+    ],
+    "expected_code": "E66.9",
+    "selection": {
+      "code": "E66.01",
+      "rationale": "A weight of 112 kg with a waist of 114 cm indicates severe obesity from excess calories."
+    },
+    "validation": {
+      "verdict": "accept",
+      "reason": "The measurements are consistent with a high degree of obesity, so E66.01 is accepted."
+    }
+  }
+]
