@@ -15,7 +15,13 @@ from langfuse import Langfuse
 from .config import load_settings, make_client, make_offline_client
 from .dataset import ICD_RELEASE, load_cases, load_code_descriptions, used_codes
 from .pipeline import IcdPipeline
-from .prompts import SPECS, LangfusePromptStore, LocalPromptStore, sync_prompts
+from .prompts import (
+    LangfusePromptStore,
+    LocalPromptStore,
+    PromptHandle,
+    PromptSetupError,
+    reference_prompts_json,
+)
 
 
 def _cmd_validate(_: argparse.Namespace) -> int:
@@ -52,15 +58,43 @@ def _authenticate(langfuse: Langfuse, host: str) -> bool:
     return False
 
 
-def _cmd_prompts_sync(_: argparse.Namespace) -> int:
+def _prompt_table(handles: dict[str, PromptHandle]) -> str:
+    rows = [
+        (name, f"v{h.version}", h.model.label, json.dumps(h.model.params, sort_keys=True))
+        for name, h in handles.items()
+    ]
+    widths = [
+        max(len(r[i]) for r in rows + [("prompt", "version", "model", "params")]) for i in range(4)
+    ]
+    lines = [
+        "  ".join(col.ljust(width) for col, width in zip(row, widths, strict=True))
+        for row in [("prompt", "version", "model", "params"), *rows]
+    ]
+    return "\n".join(lines)
+
+
+def _load_prompts(langfuse: Langfuse) -> LangfusePromptStore | None:
+    store = LangfusePromptStore(langfuse)
+    try:
+        handles = store.load()
+    except PromptSetupError as exc:
+        print(exc)
+        return None
+    print("Prompts fetched from Langfuse (production label):", file=sys.stderr)
+    print(_prompt_table(handles), file=sys.stderr)
+    return store
+
+
+def _cmd_prompts_check(_: argparse.Namespace) -> int:
     settings = load_settings()
     langfuse = make_client(settings)
     if not _authenticate(langfuse, settings.host):
         return 1
-    result = sync_prompts(langfuse)
-    langfuse.flush()
-    for name, status in result.items():
-        print(f"{status:10} {name}")
+    return 0 if _load_prompts(langfuse) else 1
+
+
+def _cmd_prompts_show(_: argparse.Namespace) -> int:
+    print(reference_prompts_json())
     return 0
 
 
@@ -75,13 +109,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
         langfuse = make_client(settings)
         if not _authenticate(langfuse, settings.host):
             return 1
-        prompts = LangfusePromptStore(langfuse)
-        for spec in SPECS:
-            try:
-                prompts.get(spec.name)
-            except Exception:  # noqa: BLE001
-                print(f"Prompt {spec.name!r} not found. Run `icd-mock prompts sync` first.")
-                return 1
+        loaded = _load_prompts(langfuse)
+        if loaded is None:
+            return 1
+        prompts = loaded
         target = settings.host
 
     run_id = args.run_id or uuid.uuid4().hex[:8]
@@ -115,6 +146,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
         "target": target,
         "seed": args.seed,
         "run_id": run_id,
+        "prompts": {
+            name: {"version": version, "model": prompts.get(name).model.label}
+            for name, version in prompts.versions().items()
+        },
         "elapsed_seconds": round(time.time() - started, 1),
         **tally,
     }
@@ -133,11 +168,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         func=_cmd_validate
     )
 
-    prompts = sub.add_parser("prompts", help="manage the six prompts in Langfuse")
+    prompts = sub.add_parser("prompts", help="inspect the six prompts")
     prompts_sub = prompts.add_subparsers(dest="prompts_command", required=True)
-    prompts_sub.add_parser("sync", help="create or update the prompts").set_defaults(
-        func=_cmd_prompts_sync
-    )
+    prompts_sub.add_parser(
+        "check", help="fetch the prompts and their models from Langfuse and list them"
+    ).set_defaults(func=_cmd_prompts_check)
+    prompts_sub.add_parser(
+        "show", help="print the reference prompts as JSON, to create them in Langfuse"
+    ).set_defaults(func=_cmd_prompts_show)
 
     run = sub.add_parser("run", help="run the pipeline and write traces")
     run.add_argument("--traces", type=int, default=1000, help="number of traces (default 1000)")

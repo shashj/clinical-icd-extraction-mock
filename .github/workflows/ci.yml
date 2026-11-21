@@ -24,4 +24,5 @@ jobs:
       - run: ruff format --check .
       - run: pytest
       - run: icd-mock validate-dataset
-      - run: icd-mock run --dry-run --traces 1000
+      - run: icd-mock prompts show
+      - run: icd-mock run --dry-run --traces 1000 --latency-scale 0

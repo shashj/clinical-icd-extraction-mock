@@ -36,6 +36,7 @@ MIN_STEP_GAP_SECONDS = 0.003
 SEARCH_LATENCY_MS = 90
 TOP_K = 5
 CLINICIANS = 12
+MODEL_PARAMETER_KEYS = ("temperature", "max_tokens", "top_p")
 
 
 def _json(value: Any) -> str:
@@ -103,6 +104,7 @@ class IcdPipeline:
             "dataset_version": DATASET_VERSION,
             "run_seed": str(self._seed),
             "run_id": self._run_id,
+            "prompt_versions": json.dumps(self._prompts.versions(), sort_keys=True),
         }
         note_input = {"case_id": case.id, "note": case.raw_note}
 
@@ -232,19 +234,24 @@ class IcdPipeline:
         time.sleep(MIN_STEP_GAP_SECONDS)
         handle = self._prompts.get(prompt_name)
         messages = handle.compile(**variables)
-        model = handle.config.get("model")
-        parameters = {
-            name_: value
-            for name_, value in handle.config.items()
-            if name_ in ("temperature", "max_tokens")
-        }
+        # The model and its parameters come from the model registry entry on the prompt version.
+        parameters = {k: v for k, v in handle.model.params.items() if k in MODEL_PARAMETER_KEYS}
+        # `prompt=` links the generation to the prompt version in Langfuse. The same facts go into
+        # metadata so they can be read and filtered without opening the prompt.
         with self._lf.start_as_current_observation(
             name=name,
             as_type="generation",
-            model=model,
+            model=handle.model.model_id,
             model_parameters=parameters or None,
             input=messages,
             prompt=handle.client,
+            metadata={
+                "prompt_name": handle.name,
+                "prompt_version": "reference" if handle.version is None else str(handle.version),
+                "prompt_label": handle.label,
+                "model_provider": handle.model.provider,
+                "registry_model_id": handle.model.registry_model_id or "",
+            },
         ) as generation:
             completion = self._llm.complete(name, messages, recorded_output, key)
             first_token_at = None
