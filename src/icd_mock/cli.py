@@ -145,7 +145,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     run.add_argument(
         "--run-id",
         default=None,
-        help="id that trace and session ids derive from (default: random, so every run is new)",
+        help="label for this run, stored in session ids and trace metadata (default: random)",
     )
     run.add_argument("--start-index", type=int, default=0, help="index of the first trace")
     run.add_argument(

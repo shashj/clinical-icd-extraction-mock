@@ -93,7 +93,6 @@ class IcdPipeline:
         timeout_injected = rng.random() < TIMEOUT_RATE
         user_id = f"clinician-{rng.randint(1, CLINICIANS):02d}"
         session_id = f"encounter-{self._run_id}-{index // 3}"
-        trace_id = self._lf.create_trace_id(seed=f"icd-mock:{self._run_id}:{index}")
         key = str(index)
         steps: list[StepRecord] = []
         tags = ["icd-extraction", case.specialty.replace(" ", "-")]
@@ -107,8 +106,9 @@ class IcdPipeline:
         }
         note_input = {"case_id": case.id, "note": case.raw_note}
 
+        # No trace_context here: passing only a trace id gives the root a parent span that does not
+        # exist, so the trace would have no real root. The SDK creates the trace from this span.
         with self._lf.start_as_current_observation(
-            trace_context={"trace_id": trace_id},
             name="icd-extraction",
             as_type="chain",
             input=note_input,

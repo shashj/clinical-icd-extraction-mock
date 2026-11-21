@@ -1,4 +1,8 @@
 import pytest
+from langfuse import Langfuse
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from icd_mock.config import make_offline_client
 from icd_mock.dataset import load_cases
@@ -80,11 +84,32 @@ def test_injected_timeout_is_an_error_then_a_retry(pipeline):
     assert searches[0].level == "ERROR" and searches[-1].level == "DEFAULT"
 
 
-def test_same_index_gives_the_same_trace(pipeline):
+def test_same_index_gives_the_same_outputs(pipeline):
     first = pipeline.run_case(CASES["case-12"], 11)
     second = pipeline.run_case(CASES["case-12"], 11)
-    assert first.trace_id == second.trace_id
     assert [s.output for s in first.steps] == [s.output for s in second.steps]
+
+
+def test_each_request_is_one_trace_with_a_real_root():
+    # A root that has a parent id no span carries leaves the trace without a root in Langfuse.
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    client = Langfuse(
+        public_key="pk-root-test",
+        secret_key="sk-root-test",
+        host="http://localhost:1",
+        tracer_provider=provider,
+    )
+    pipeline = IcdPipeline(client, LocalPromptStore(), seed=42, run_id="test")
+    pipeline.run_case(CASES["case-03"], INDEX["case-03"])
+
+    spans = exporter.get_finished_spans()
+    roots = [s for s in spans if s.parent is None]
+    assert [r.name for r in roots] == ["icd-extraction"]
+    assert len({s.context.trace_id for s in spans}) == 1
+    span_ids = {s.context.span_id for s in spans}
+    assert all(s.parent.span_id in span_ids for s in spans if s.parent is not None)
 
 
 def test_every_prompt_variable_is_filled_for_every_case():
