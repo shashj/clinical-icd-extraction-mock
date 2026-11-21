@@ -43,7 +43,7 @@ The model names match Langfuse's built-in model definitions, so Langfuse infers 
   - about 3 percent of traces get an injected vector search timeout (`ERROR`) and a retry.
 - **Scores** on each trace: `icd_correct` (boolean), `validation_passed` (boolean) and `selection_attempts` (numeric).
 - **Metadata and identity**: `case_id`, specialty, a clinician user ID, an encounter session ID, and tags.
-- Trace and session IDs derive from a run ID (`--run-id`, random by default), so every run writes a new set of traces. With the same `--run-id` a run reuses the same trace IDs, but OpenTelemetry assigns span IDs randomly, so re-running it adds duplicate observations to those traces. Use a new run ID instead.
+- Every request is one trace with a real root: the `icd-extraction` span has no parent, and every step is a child of it. Each run creates new traces, because the SDK generates trace and span IDs. The run ID (`--run-id`, random by default) is stored in the metadata and session IDs of that run's traces, so you can filter a run.
 
 ## Setup
 
@@ -78,7 +78,7 @@ icd-mock run --dry-run               # run the pipeline without sending anything
 | --- | --- | --- |
 | `--traces` | 1000 | Number of traces. Case `i % 30` is used for trace `i`. |
 | `--seed` | 42 | Seeds users, token counts and which traces get a timeout. |
-| `--run-id` | random | Trace and session IDs derive from it. A new run ID writes new traces. |
+| `--run-id` | random | Labels one run: it is in the session IDs and metadata of that run's traces. |
 | `--flush-every` | 25 | Flush to Langfuse every N traces. The SDK drops spans when its export queue is full, so a fast loop must flush. |
 | `--start-index` | 0 | Index of the first trace, to append more traces with the same seed. |
 | `--latency-scale` | 0.01 | Sleep this fraction of each step's recorded latency. `1` is real time, `0` writes as fast as possible. |
