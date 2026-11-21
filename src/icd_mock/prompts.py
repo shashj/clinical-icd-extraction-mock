@@ -1,7 +1,12 @@
-"""The six prompts, kept in Langfuse prompt management and fetched on every call."""
+"""The six prompts. Langfuse owns them: the service fetches each one, with its model, before a run.
+
+`REFERENCE_PROMPTS` below is a built-in copy used only for dry runs, the tests and
+`icd-mock prompts show`, which prints it so you can create the prompts in Langfuse.
+"""
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -19,7 +24,7 @@ class PromptSpec:
     config: dict[str, Any]
 
 
-SPECS: tuple[PromptSpec, ...] = (
+REFERENCE_PROMPTS: tuple[PromptSpec, ...] = (
     PromptSpec(
         name="icd-note-cleaning",
         messages=(
@@ -112,27 +117,70 @@ SPECS: tuple[PromptSpec, ...] = (
     ),
 )
 
-SPECS_BY_NAME = {spec.name: spec for spec in SPECS}
+REFERENCE_BY_NAME = {spec.name: spec for spec in REFERENCE_PROMPTS}
+PROMPT_NAMES = tuple(spec.name for spec in REFERENCE_PROMPTS)
 
 
 def _substitute(template: str, variables: dict[str, str]) -> str:
     return re.sub(r"\{\{(\w+)\}\}", lambda m: str(variables.get(m.group(1), m.group(0))), template)
 
 
+def prompt_variables(spec: PromptSpec) -> list[str]:
+    found = {name for _, content in spec.messages for name in re.findall(r"\{\{(\w+)\}\}", content)}
+    return sorted(found)
+
+
+class PromptSetupError(Exception):
+    """A prompt is missing in Langfuse or has no model. The message says how to fix it."""
+
+
+@dataclass(frozen=True)
+class PromptModel:
+    """The model a prompt version runs on, as resolved from the Langfuse model registry."""
+
+    provider: str
+    model_id: str
+    params: dict[str, Any]
+    registry_model_id: str | None = None
+
+    @property
+    def label(self) -> str:
+        return f"{self.provider}/{self.model_id}"
+
+
 @dataclass(frozen=True)
 class PromptHandle:
     name: str
-    config: dict[str, Any]
+    version: int | None
+    label: str
+    model: PromptModel
     compile: Callable[..., list[dict[str, Any]]]
     # The Langfuse prompt client to link a generation to, or None offline.
     client: Any | None = None
 
 
+def parse_prompt_model(name: str, version: int | None, raw: dict[str, Any]) -> PromptModel:
+    """Read the registry model from a prompt API response. Raises if the prompt has none."""
+    model = raw.get("model")
+    if not isinstance(model, dict) or not model.get("modelId"):
+        raise PromptSetupError(
+            f"Prompt {name!r} (version {version}) has no model. Attach a model from the model "
+            "registry to the prompt version in Langfuse. This needs a Langfuse with the model "
+            "registry."
+        )
+    return PromptModel(
+        provider=str(model.get("provider", "")),
+        model_id=str(model["modelId"]),
+        params=dict(model.get("params") or {}),
+        registry_model_id=raw.get("registryModelId"),
+    )
+
+
 class LocalPromptStore:
-    """Compiles the prompts defined in this file. Used for dry runs and tests."""
+    """The built-in reference prompts. Used for dry runs and tests, never for a real run."""
 
     def get(self, name: str) -> PromptHandle:
-        spec = SPECS_BY_NAME[name]
+        spec = REFERENCE_BY_NAME[name]
 
         def compile_messages(**variables: str) -> list[dict[str, Any]]:
             return [
@@ -140,62 +188,93 @@ class LocalPromptStore:
                 for role, content in spec.messages
             ]
 
-        return PromptHandle(name=name, config=dict(spec.config), compile=compile_messages)
+        params = {k: v for k, v in spec.config.items() if k in ("temperature", "max_tokens")}
+        return PromptHandle(
+            name=name,
+            version=None,
+            label="reference",
+            model=PromptModel(provider="reference", model_id=spec.config["model"], params=params),
+            compile=compile_messages,
+        )
+
+    def versions(self) -> dict[str, int | None]:
+        return {name: None for name in PROMPT_NAMES}
+
+
+def _as_dict(raw: Any) -> dict[str, Any]:
+    dump = getattr(raw, "model_dump", None) or raw.dict
+    return dict(dump(by_alias=True))
 
 
 class LangfusePromptStore:
-    """Fetches the production version of each prompt from Langfuse prompt management."""
+    """Fetches the production version of each prompt, with its model, from Langfuse.
 
-    def __init__(self, langfuse: Langfuse) -> None:
+    Call `load()` once before a run. The run then uses exactly those versions throughout.
+    """
+
+    def __init__(self, langfuse: Langfuse, names: tuple[str, ...] = PROMPT_NAMES) -> None:
         self._langfuse = langfuse
+        self._names = names
+        self._handles: dict[str, PromptHandle] = {}
+
+    def load(self) -> dict[str, PromptHandle]:
+        missing: list[str] = []
+        problems: list[str] = []
+        handles: dict[str, PromptHandle] = {}
+        for name in self._names:
+            try:
+                client = self._langfuse.get_prompt(
+                    name, label=PRODUCTION_LABEL, type="chat", cache_ttl_seconds=0
+                )
+                raw = _as_dict(self._langfuse.api.prompts.get(name, label=PRODUCTION_LABEL))
+            except Exception:  # noqa: BLE001 - a missing prompt raises, anything else surfaces below
+                missing.append(name)
+                continue
+            try:
+                model = parse_prompt_model(name, client.version, raw)
+            except PromptSetupError as exc:
+                problems.append(str(exc))
+                continue
+            handles[name] = PromptHandle(
+                name=name,
+                version=client.version,
+                label=PRODUCTION_LABEL,
+                model=model,
+                compile=client.compile,
+                client=client,
+            )
+        if missing:
+            problems.insert(
+                0,
+                "Not found in Langfuse with the 'production' label: "
+                + ", ".join(missing)
+                + ". Create them in Langfuse (run `icd-mock prompts show` for the reference text).",
+            )
+        if problems:
+            raise PromptSetupError("\n".join(problems))
+        self._handles = handles
+        return handles
 
     def get(self, name: str) -> PromptHandle:
-        client = self._langfuse.get_prompt(name, label=PRODUCTION_LABEL, type="chat")
-        return PromptHandle(
-            name=name,
-            config=dict(client.config or {}),
-            compile=client.compile,
-            client=client,
-        )
+        return self._handles[name]
+
+    def versions(self) -> dict[str, int | None]:
+        return {name: handle.version for name, handle in self._handles.items()}
 
 
-def _existing_messages(client: Any) -> list[tuple[str, str]]:
-    return [
-        (m["role"], m["content"]) for m in client.prompt if m.get("type", "message") == "message"
-    ]
-
-
-def sync_prompts(langfuse: Langfuse) -> dict[str, str]:
-    """Create or update the six prompts in Langfuse. Returns name -> created, updated, unchanged."""
-    result: dict[str, str] = {}
-    for spec in SPECS:
-        status = "created"
-        try:
-            existing = langfuse.get_prompt(
-                spec.name,
-                label=PRODUCTION_LABEL,
-                type="chat",
-                cache_ttl_seconds=0,
-                max_retries=0,
-            )
-        except Exception:  # noqa: BLE001 - a missing prompt raises, anything else fails on create
-            existing = None
-        if existing is not None:
-            same = _existing_messages(existing) == list(spec.messages) and (
-                dict(existing.config or {}) == spec.config
-            )
-            if same:
-                result[spec.name] = "unchanged"
-                continue
-            status = "updated"
-        langfuse.create_prompt(
-            name=spec.name,
-            type="chat",
-            prompt=[{"role": role, "content": content} for role, content in spec.messages],
-            labels=[PRODUCTION_LABEL],
-            tags=["icd-extraction"],
-            config=spec.config,
-            commit_message="Synced from clinical-icd-extraction-mock",
-        )
-        result[spec.name] = status
-    return result
+def reference_prompts_json() -> str:
+    """The reference prompts as JSON, to create them in Langfuse."""
+    return json.dumps(
+        [
+            {
+                "name": spec.name,
+                "type": "chat",
+                "labels": [PRODUCTION_LABEL],
+                "variables": prompt_variables(spec),
+                "prompt": [{"role": role, "content": content} for role, content in spec.messages],
+                "suggested_model": spec.config["model"],
+            }
+            for spec in REFERENCE_PROMPTS
+        ],
+        indent=2,
+    )

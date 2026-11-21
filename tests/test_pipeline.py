@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 from langfuse import Langfuse
 from opentelemetry.sdk.trace import TracerProvider
@@ -7,7 +9,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanE
 from icd_mock.config import make_offline_client
 from icd_mock.dataset import load_cases
 from icd_mock.pipeline import IcdPipeline
-from icd_mock.prompts import SPECS, LocalPromptStore
+from icd_mock.prompts import REFERENCE_PROMPTS, LocalPromptStore
 
 CASES = {case.id: case for case in load_cases()}
 INDEX = {case.id: i for i, case in enumerate(load_cases())}
@@ -27,9 +29,7 @@ class RecordingStore(LocalPromptStore):
             self.compiled.extend(m["content"] for m in messages)
             return messages
 
-        return type(handle)(
-            name=handle.name, config=handle.config, compile=compile_and_record, client=None
-        )
+        return replace(handle, compile=compile_and_record)
 
 
 @pytest.fixture(scope="module")
@@ -120,6 +120,47 @@ def test_every_prompt_variable_is_filled_for_every_case():
     assert store.compiled and not any("{{" in text for text in store.compiled)
 
 
-def test_six_prompts_each_name_a_model():
-    assert len(SPECS) == 6
-    assert all(spec.config.get("model") for spec in SPECS)
+def test_six_reference_prompts_each_name_a_model():
+    assert len(REFERENCE_PROMPTS) == 6
+    assert all(spec.config.get("model") for spec in REFERENCE_PROMPTS)
+
+
+class LinkedStore(LocalPromptStore):
+    """Pretends every prompt came from Langfuse as version 7, with a linkable prompt client."""
+
+    def get(self, name):
+        client = type("PromptClient", (), {"name": name, "version": 7, "is_fallback": False})()
+        return replace(super().get(name), version=7, label="production", client=client)
+
+    def versions(self):
+        return {name: 7 for name in super().versions()}
+
+
+def test_traces_record_which_prompt_version_and_model_ran():
+    exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(exporter))
+    client = Langfuse(
+        public_key="pk-prompt-test",
+        secret_key="sk-prompt-test",
+        host="http://localhost:1",
+        tracer_provider=provider,
+    )
+    IcdPipeline(client, LinkedStore(), seed=42, run_id="test").run_case(CASES["case-01"], 0)
+
+    spans = exporter.get_finished_spans()
+    generations = [
+        s for s in spans if s.attributes.get("langfuse.observation.type") == "generation"
+    ]
+    assert len(generations) == 6
+    for span in generations:
+        attrs = span.attributes
+        assert attrs["langfuse.observation.prompt.name"].startswith("icd-")
+        assert attrs["langfuse.observation.prompt.version"] == 7
+        assert attrs["langfuse.observation.metadata.prompt_version"] == "7"
+        assert attrs["langfuse.observation.metadata.prompt_label"] == "production"
+        assert attrs["langfuse.observation.model.name"]
+    linked = {s.attributes["langfuse.observation.prompt.name"] for s in generations}
+    assert linked == {spec.name for spec in REFERENCE_PROMPTS}
+    root = next(s for s in spans if s.parent is None)
+    assert '"icd-code-selection": 7' in root.attributes["langfuse.trace.metadata.prompt_versions"]
